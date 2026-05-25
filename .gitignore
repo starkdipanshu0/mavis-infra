@@ -39,3 +39,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode
+.idea
+
+# Large media — do not commit raw videos / hero images. Optimize + serve via CDN.
+# Local dev only: drop assets into public/videos/ and public/images/featured/.
+public/videos/*.mp4
+public/videos/*.webm
+public/videos/*.mov
+public/images/featured/*.jpg
+public/images/featured/*.jpeg
+public/images/featured/*.png
+public/images/premium/*.jpg
+public/images/premium/*.jpeg
+public/images/premium/*.png
