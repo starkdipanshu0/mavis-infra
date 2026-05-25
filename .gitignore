@@ -44,14 +44,8 @@ next-env.d.ts
 .vscode
 .idea
 
-# Large media — do not commit raw videos / hero images. Optimize + serve via CDN.
-# Local dev only: drop assets into public/videos/ and public/images/featured/.
-public/videos/*.mp4
-public/videos/*.webm
-public/videos/*.mov
-public/images/featured/*.jpg
-public/images/featured/*.jpeg
-public/images/featured/*.png
-public/images/premium/*.jpg
-public/images/premium/*.jpeg
-public/images/premium/*.png
+# Large raw media. Optimized web assets (committed under public/) are fine.
+# Resize JPGs to <=1920w, ~300 KB before committing. Compress MP4s to <=5 MB.
+# Raw exports from cameras / drone footage stay out.
+public/videos/_raw/
+public/images/_raw/
