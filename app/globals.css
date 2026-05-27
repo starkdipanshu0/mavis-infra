@@ -67,7 +67,7 @@
   --color-mavis-gold-soft: rgba(200, 169, 110, 0.4);
   --color-mavis-fg: #f5f1ea; /* off-white, warmer than pure white — matches ink bg */
   --color-mavis-fg-muted: rgba(245, 241, 234, 0.7);
-  --color-mavis-fg-faint: rgba(245, 241, 234, 0.42);
+  --color-mavis-fg-faint: rgba(245, 241, 234, 0.55); /* ~5.5:1 on ink — AA for small labels */
   --color-whatsapp: #25d366;
 
   /* Type scale — display fluid sizes for cinematic headings */

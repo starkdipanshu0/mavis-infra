@@ -1,109 +1,123 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { X } from "lucide-react";
 import { SectionHeading } from "@/components/shared/SectionHeading";
-import { ProjectCard } from "@/components/project/ProjectCard";
+import { Container } from "@/components/shared/Container";
+import { FrostedButton } from "@/components/shared/FrostedButton";
+import { ProjectsBrowser } from "@/components/projects/ProjectsBrowser";
 import { ALL_PROJECTS, TOTAL_PROJECT_COUNT } from "@/lib/data/all-projects";
-import { findLocalityBySlug } from "@/lib/data/localities";
+import { BRAND } from "@/lib/constants";
+import {
+  parseSearchParams,
+  objectToSearchParams,
+  describeFilters,
+  activeFilterCount,
+} from "@/lib/projects/filters";
 
 /**
- * `/projects` — listing stub.
+ * `/projects` — the deep-browse listing. Utility-first, filterable.
  *
- * Lightweight v1: section heading + grid of all 12 cards, with an optional
- * locality filter driven by the `?locality=<slug>` query (set by the homepage
- * BrowseByLocality bento). The full filterable listing (zone tabs, filter
- * bar, sort, infinite scroll) is documented in PROJECTS-PAGE-PLAN.md and
- * will replace this stub once CMS data lands.
+ * Server component: renders the static hero + footer CTA and hands the
+ * interactive filter/grid experience to the client `ProjectsBrowser` (wrapped
+ * in Suspense, required by Next 16 for useSearchParams on a static route).
  *
- * Note on Next 16 searchParams: `searchParams` is now a Promise — `await` it
- * before use, matching the same convention as dynamic-route `params`.
+ * Filter state lives entirely in the URL query string — see
+ * `lib/projects/filters.ts`. Metadata is derived from the active filters so
+ * shared/filtered URLs carry meaningful titles (SEO) without separate routes.
+ *
+ * Spec: PROJECTS-PAGE-PLAN.md.
  */
 
-interface PageProps {
-  searchParams: Promise<{ locality?: string }>;
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const state = parseSearchParams(objectToSearchParams(await searchParams));
+  const hasFilters = activeFilterCount(state) > 0 || state.zone !== "all";
+
+  const title = hasFilters
+    ? describeFilters(state)
+    : "All Projects in Bangalore — Apartments, Villas & Plots";
+  const description = hasFilters
+    ? `Browse ${describeFilters(state)} from Sobha, Prestige, Brigade, Provident & top Bangalore builders. RERA-verified. Free site visits.`
+    : `Browse ${TOTAL_PROJECT_COUNT}+ RERA-verified projects from Sobha, Prestige, Brigade, Provident & top Bangalore builders. Filter by zone, budget, BHK.`;
+
+  return { title, description };
 }
 
-export const metadata: Metadata = {
-  title: "All Projects",
-  description: `Browse ${TOTAL_PROJECT_COUNT}+ RERA-verified projects from Sobha, Prestige, Brigade, Provident and top Bangalore builders.`,
-};
-
-export default async function ProjectsListingPage({ searchParams }: PageProps) {
-  const { locality: localitySlug } = await searchParams;
-  const locality = localitySlug ? findLocalityBySlug(localitySlug) : undefined;
-
-  // Filter by locality name match — same string the BrowseByLocality grid
-  // tiles use for their `name` field. Falls through to the unfiltered list
-  // if the slug doesn't resolve (defensive against stale links).
-  const projects = locality
-    ? ALL_PROJECTS.filter((p) => p.locality === locality.name)
-    : ALL_PROJECTS;
-
+export default function ProjectsListingPage() {
   return (
     <div className="relative w-full bg-mavis-bg text-mavis-fg">
-      {/* Intro */}
-      <section className="pt-32 sm:pt-40 pb-12 px-6 sm:px-10 lg:px-16 text-center">
-        <SectionHeading bold="EXPLORE" thin="ALL PROJECTS" size="md" />
-        <p className="mt-7 font-display italic font-light text-mavis-fg-muted text-[clamp(1rem,1.6vw,1.2rem)] leading-relaxed max-w-md mx-auto">
-          {locality
-            ? `Projects in ${locality.name}.`
-            : `${TOTAL_PROJECT_COUNT} residences across Bangalore. Tap any card for details and a one-tap WhatsApp enquiry.`}
-        </p>
-
-        {locality && (
-          <div className="mt-7 flex justify-center">
-            <Link
-              href="/projects"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-mavis-gold/40 bg-mavis-gold/8 text-mavis-fg hover:border-mavis-gold/60 hover:bg-mavis-gold/15 transition-all text-[10px] uppercase font-light"
-              style={{ letterSpacing: "var(--tracking-display-wide)" }}
+      {/* Section 1 — compact hero */}
+      <section className="pt-28 sm:pt-36 pb-12 sm:pb-16">
+        <Container size="wide">
+          <div className="flex items-center gap-3">
+            <span aria-hidden="true" className="h-px w-8 bg-mavis-gold/60" />
+            <span
+              className="text-[10px] uppercase font-light text-mavis-gold"
+              style={{ letterSpacing: "var(--tracking-eyebrow)" }}
             >
-              <span>{locality.name}</span>
-              <X className="h-3 w-3" strokeWidth={1.5} />
-              <span className="sr-only">Clear filter</span>
-            </Link>
+              The Inventory
+            </span>
           </div>
-        )}
+          <SectionHeading
+            bold="EXPLORE"
+            thin="ALL PROJECTS"
+            size="lg"
+            as="h1"
+            align="left"
+            className="mt-5"
+          />
+          <p className="mt-6 max-w-xl font-display italic font-light text-mavis-fg-muted text-[clamp(1rem,1.8vw,1.35rem)] leading-relaxed">
+            {TOTAL_PROJECT_COUNT} residences across Bangalore — filter by zone,
+            budget and configuration to find your match.
+          </p>
+        </Container>
       </section>
 
-      {/* Grid */}
-      <section className="mx-auto max-w-360 px-6 sm:px-10 lg:px-16 pb-32">
-        {projects.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-            {projects.map((item, i) => (
-              <ProjectCard
-                key={item.slug}
-                item={item}
-                priority={i < 4}
-                className="h-full"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mx-auto max-w-md text-center py-20">
-            <p className="font-display italic text-mavis-fg-muted text-lg">
-              No curated projects in {locality?.name} yet — more are coming.
-            </p>
-            <Link
-              href="/projects"
-              className="mt-6 inline-flex items-center gap-2 text-[11px] uppercase text-mavis-fg hover:text-mavis-gold transition-colors font-light"
-              style={{ letterSpacing: "var(--tracking-display-wide)" }}
-            >
-              View all {TOTAL_PROJECT_COUNT} projects →
-            </Link>
-          </div>
-        )}
+      {/* Sections 2–6 — interactive browse */}
+      <Suspense fallback={<BrowseFallback />}>
+        <ProjectsBrowser projects={ALL_PROJECTS} />
+      </Suspense>
 
-        {/* Footer note — only meaningful when not filtered */}
-        {!locality && projects.length > 0 && (
-          <p
-            className="mt-20 text-center text-[10px] uppercase text-mavis-fg-faint font-light"
-            style={{ letterSpacing: "var(--tracking-eyebrow)" }}
-          >
-            + {TOTAL_PROJECT_COUNT - ALL_PROJECTS.length} more projects available
-            on request
+      {/* Section 7 — footer CTA strip */}
+      <section className="border-t border-mavis-line py-20 sm:py-28">
+        <Container size="narrow" className="text-center">
+          <h2 className="font-display italic font-light text-mavis-fg text-[clamp(1.75rem,4vw,2.75rem)] leading-tight">
+            Can&rsquo;t decide? That&rsquo;s what we&rsquo;re here for.
+          </h2>
+          <p className="mt-5 text-sm sm:text-base font-light leading-relaxed text-mavis-fg-muted">
+            {BRAND.metrics.repeatClients} of our {BRAND.metrics.familiesHelped}{" "}
+            buyers came back for their second. Get matched with a Mavis advisor
+            who&rsquo;ll filter through these for you.
           </p>
-        )}
+          <div className="mt-9 flex justify-center">
+            <FrostedButton href="/#concierge" size="lg">
+              Speak to an advisor
+            </FrostedButton>
+          </div>
+        </Container>
       </section>
     </div>
+  );
+}
+
+/** Suspense fallback — keeps the page shell stable while the client browser
+    hydrates (prevents layout shift on first paint). */
+function BrowseFallback() {
+  return (
+    <Container size="wide" className="py-16">
+      <div className="h-10 w-full max-w-md rounded-sm bg-mavis-surface animate-pulse" />
+      <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="aspect-4/3 rounded-sm bg-mavis-surface animate-pulse"
+          />
+        ))}
+      </div>
+    </Container>
   );
 }

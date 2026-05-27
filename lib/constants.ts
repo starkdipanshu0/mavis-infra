@@ -52,6 +52,7 @@ export const BRAND = {
  */
 export const NAV_LINKS = [
   { label: "Projects", href: "/projects" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/#concierge" },
 ] as const;
 
@@ -68,6 +69,55 @@ export const BUDGET_BRACKETS = [
   { label: "₹2 – 5 Cr", slug: "2-5cr", min: 20_000_000, max: 50_000_000 },
   { label: "₹5 Cr+", slug: "5cr-plus", min: 50_000_000 },
 ] as const;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Projects listing (/projects) filter + sort option configs.
+   Consumed by lib/projects/filters.ts and components/projects/*.
+   Slugs are the canonical query-string values (e.g. ?status=pre-launch,ready).
+   ───────────────────────────────────────────────────────────────────────── */
+
+/** Bedroom-count options for the BHK filter (apartments). Villa/plot/townhouse
+    are filtered via TYPE_OPTIONS instead. */
+export const BHK_OPTIONS = [
+  { label: "1 BHK", slug: "1", value: 1 },
+  { label: "2 BHK", slug: "2", value: 2 },
+  { label: "3 BHK", slug: "3", value: 3 },
+  { label: "4 BHK", slug: "4", value: 4 },
+  { label: "5 BHK", slug: "5", value: 5 },
+] as const;
+
+export const STATUS_OPTIONS = [
+  { label: "Pre-launch", slug: "pre-launch" },
+  { label: "Under Construction", slug: "under-construction" },
+  { label: "Ready to Move", slug: "ready" },
+] as const;
+
+export const TYPE_OPTIONS = [
+  { label: "Apartment", slug: "apartment" },
+  { label: "Villa", slug: "villa" },
+  { label: "Plot", slug: "plot" },
+  { label: "Townhouse", slug: "townhouse" },
+] as const;
+
+/** Builders surfaced at the top of the Builder filter (rest are A–Z below). */
+export const TOP_BUILDERS = [
+  "SOBHA",
+  "PRESTIGE",
+  "BRIGADE",
+  "PROVIDENT",
+  "PURAVANKARA",
+] as const;
+
+export const SORT_OPTIONS = [
+  { label: "Featured", slug: "featured" },
+  { label: "Newest", slug: "newest" },
+  { label: "Price: Low to High", slug: "price-asc" },
+  { label: "Price: High to Low", slug: "price-desc" },
+  { label: "Possession: Soonest", slug: "possession" },
+] as const;
+
+export type SortSlug = (typeof SORT_OPTIONS)[number]["slug"];
+export const DEFAULT_SORT: SortSlug = "featured";
 
 const DEFAULT_WA_MESSAGE =
   "Hi, I'd like to know more about your projects.";

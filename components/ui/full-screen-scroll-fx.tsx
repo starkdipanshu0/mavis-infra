@@ -727,10 +727,9 @@ export const FullScreenScrollFX = forwardRef<HTMLDivElement, FullScreenFXProps>(
             width: 100%;
             height: 120%;
             object-fit: cover;
-            /* Brightness 0.92 keeps the cinematic mood without darkening
-               the photography into mud. The colors.overlay prop carries
-               the rest of the legibility wash. */
-            filter: brightness(0.92);
+            /* Near-full brightness — the photography should read bright; the
+               light colors.overlay prop carries the legibility wash. */
+            filter: brightness(1);
             opacity: 0;
             will-change: transform, opacity;
           }

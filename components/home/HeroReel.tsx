@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,26 @@ import { cn } from "@/lib/utils";
  */
 
 const HERO_VIDEO = "/videos/hero-sunworth.mp4";
+const HERO_POSTER = "/images/hero-poster.jpg";
 const EASE_QUINT_OUT = [0.22, 1, 0.36, 1] as const;
+
+type ConnLike = { saveData?: boolean; addEventListener?: (t: string, cb: () => void) => void; removeEventListener?: (t: string, cb: () => void) => void };
+const getConn = (): ConnLike | undefined =>
+  (navigator as Navigator & { connection?: ConnLike }).connection;
+
+/** Reactively reads the browser Save-Data hint. SSR snapshot is false, so the
+    server renders the video and the client only switches post-hydration. */
+function useSaveData(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const c = getConn();
+      c?.addEventListener?.("change", cb);
+      return () => c?.removeEventListener?.("change", cb);
+    },
+    () => getConn()?.saveData === true,
+    () => false,
+  );
+}
 
 export function HeroReel() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -37,6 +57,12 @@ export function HeroReel() {
   // animate when visible — saves a constant rAF chain once the user scrolls
   // past the first viewport.
   const [inView, setInView] = useState(true);
+  // Only Save-Data fully skips the video download (poster image instead).
+  // Reduced-motion still loads the video element — it just doesn't autoplay,
+  // so the poster frame shows statically (motion respected, hero still there).
+  const saveData = useSaveData();
+  const posterOnly = saveData;
+  const videoVisible = loaded || reducedMotion;
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -67,29 +93,42 @@ export function HeroReel() {
     >
       {/* Background video — fades in once metadata loads to avoid black flash */}
       <div className="absolute inset-0">
-        <video
-          ref={videoRef}
-          src={HERO_VIDEO}
-          muted
-          playsInline
-          loop
-          autoPlay={!reducedMotion}
-          preload="metadata"
-          aria-hidden="true"
-          onLoadedData={() => setLoaded(true)}
-          className={cn(
-            "h-full w-full object-cover transition-opacity duration-1000 ease-out",
-            loaded ? "opacity-100" : "opacity-0",
-          )}
-          style={{ filter: "brightness(0.78) saturate(1.05)" }}
-        />
+        {posterOnly ? (
+          <Image
+            src={HERO_POSTER}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+            style={{ filter: "brightness(0.78) saturate(1.05)" }}
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            src={HERO_VIDEO}
+            muted
+            playsInline
+            loop
+            autoPlay={!reducedMotion}
+            preload="metadata"
+            poster={HERO_POSTER}
+            aria-hidden="true"
+            onLoadedData={() => setLoaded(true)}
+            className={cn(
+              "h-full w-full object-cover transition-opacity duration-1000 ease-out",
+              videoVisible ? "opacity-100" : "opacity-0",
+            )}
+            style={{ filter: "brightness(0.78) saturate(1.05)" }}
+          />
+        )}
         {/* Surface fallback shown while video loads. Same tone as bg so the
             transition is invisible. */}
         <div
           aria-hidden="true"
           className={cn(
             "absolute inset-0 bg-mavis-surface transition-opacity duration-1000",
-            loaded ? "opacity-0" : "opacity-100",
+            videoVisible || posterOnly ? "opacity-0" : "opacity-100",
           )}
         />
       </div>

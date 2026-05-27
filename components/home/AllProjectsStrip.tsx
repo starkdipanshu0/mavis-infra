@@ -212,6 +212,12 @@ export function AllProjectsStrip() {
               className="flex-none w-2 sm:w-4 lg:w-8"
             />
           </div>
+
+          {/* Mobile swipe affordance — right-edge fade hints at more cards */}
+          <div
+            aria-hidden="true"
+            className="sm:hidden pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-mavis-bg to-transparent"
+          />
         </div>
 
         {/* CTA — text link, not a button */}

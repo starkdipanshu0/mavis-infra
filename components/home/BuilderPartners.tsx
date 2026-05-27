@@ -1,12 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "motion/react";
 import { SectionHeading } from "@/components/shared/SectionHeading";
-import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import {
   BUILDER_PARTNERS,
   ADDITIONAL_PARTNER_COUNT,
 } from "@/lib/data/builder-partners";
+
+// Three.js backdrop is decorative and heavy (~150 KB). Load it client-side
+// only, and never on mobile, reduced-motion, or Save-Data — those fall back
+// to the static radial scrim below.
+const GenerativeArtScene = dynamic(
+  () =>
+    import("@/components/ui/anomalous-matter-hero").then(
+      (m) => m.GenerativeArtScene,
+    ),
+  { ssr: false },
+);
 
 /**
  * S5 — Builder Partners.
@@ -36,26 +48,45 @@ import {
 const EASE_QUINT_OUT = [0.22, 1, 0.36, 1] as const;
 
 export function BuilderPartners() {
+  // Only render the WebGL backdrop on capable, motion-friendly clients.
+  // Everyone else gets the static radial scrim below — no three.js download.
+  const [showWebGL, setShowWebGL] = useState(false);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const saveData =
+      (navigator as Navigator & { connection?: { saveData?: boolean } })
+        .connection?.saveData === true;
+    const update = () =>
+      setShowWebGL(desktop.matches && !reduce.matches && !saveData);
+    update();
+    desktop.addEventListener("change", update);
+    reduce.addEventListener("change", update);
+    return () => {
+      desktop.removeEventListener("change", update);
+      reduce.removeEventListener("change", update);
+    };
+  }, []);
+
   return (
     <section
       aria-label="Builder Partners"
       className="relative w-full bg-mavis-bg py-28 sm:py-36"
     >
-      {/* Generative wireframe icosahedron backdrop (Three.js).
-          Replaces the earlier flat radial spotlight with a living,
-          slowly-rotating gold form. Mouse-tracked light source on desktop.
-          Render pauses via IntersectionObserver when off-screen.
-          Opacity 22% so it sits behind the typography, never competing. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none opacity-[0.22]"
-      >
-        <GenerativeArtScene
-          color="#c8a96e"
-          displacement={0.12}
-          mouseTracking
-        />
-      </div>
+      {/* Generative wireframe icosahedron backdrop (Three.js) — desktop +
+          motion-on only; dynamically imported so it never ships to mobile. */}
+      {showWebGL && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none opacity-[0.22]"
+        >
+          <GenerativeArtScene
+            color="#c8a96e"
+            displacement={0.12}
+            mouseTracking
+          />
+        </div>
+      )}
       {/* Soft floor + ceiling scrim — keeps the wireframe from touching
           adjacent sections' edges with hard lines. */}
       <div

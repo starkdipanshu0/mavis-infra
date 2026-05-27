@@ -47,6 +47,12 @@ export function GenerativeArtScene({
     const currentMount = mountRef.current;
     if (!currentMount) return;
 
+    // Respect reduced-motion: build the scene and render a single static
+    // frame, but never start the animation loop or track the cursor.
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     /* ── Scene + camera + renderer ──────────────────────────────────── */
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -173,6 +179,7 @@ export function GenerativeArtScene({
       frameId = requestAnimationFrame(animate);
     };
     const start = () => {
+      if (reducedMotion) return; // never animate under reduced motion
       if (frameId === null) frameId = requestAnimationFrame(animate);
     };
     const stop = () => {
@@ -181,7 +188,11 @@ export function GenerativeArtScene({
         frameId = null;
       }
     };
-    start();
+    if (reducedMotion) {
+      renderer.render(scene, camera); // one static frame, no loop
+    } else {
+      start();
+    }
 
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -212,7 +223,7 @@ export function GenerativeArtScene({
       lightRef.current.position.copy(pos);
       material.uniforms.pointLightPosition.value = pos;
     };
-    if (mouseTracking) {
+    if (mouseTracking && !reducedMotion) {
       window.addEventListener("mousemove", handleMouseMove, { passive: true });
     }
 

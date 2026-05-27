@@ -84,10 +84,9 @@ export function FeaturedCarousel() {
       durations={{ change: 0.7, snap: 800 }}
       colors={{
         text: "#f5f1ea",
-        // Overlay lightened from 0.55 → 0.32 so the Higgsfield photography
-        // stays clearly visible. Side-list text + centre title still read
-        // cleanly thanks to the off-white tone + tracked uppercase weight.
-        overlay: "rgba(13, 12, 10, 0.32)",
+        // Overlay kept light (0.18) so the photography reads bright; the
+        // off-white tracked type stays legible thanks to its own weight/shadow.
+        overlay: "rgba(13, 12, 10, 0.18)",
         pageBg: "#0d0c0a",
         stageBg: "#0d0c0a",
       }}

@@ -252,21 +252,26 @@ function LeftPanel() {
             </AnimatePresence>
           </div>
 
-          {/* Dot pager for quotes — purely visual */}
-          <div className="mt-6 flex items-center gap-2">
+          {/* Dot pager for quotes — 44px hit area, 1px visual bar inside */}
+          <div className="mt-3 flex items-center gap-2">
             {TESTIMONIALS.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setQuoteIndex(i)}
                 aria-label={`Show testimonial ${i + 1}`}
-                className={cn(
-                  "h-1 rounded-full transition-all duration-500",
-                  i === quoteIndex
-                    ? "w-8 bg-mavis-gold"
-                    : "w-2 bg-mavis-fg/30 hover:bg-mavis-fg/60",
-                )}
-              />
+                aria-pressed={i === quoteIndex}
+                className="group flex h-11 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mavis-gold-soft rounded"
+              >
+                <span
+                  className={cn(
+                    "block h-1 rounded-full transition-all duration-500",
+                    i === quoteIndex
+                      ? "w-8 bg-mavis-gold"
+                      : "w-2 bg-mavis-fg/30 group-hover:bg-mavis-fg/60",
+                  )}
+                />
+              </button>
             ))}
           </div>
 
@@ -654,7 +659,7 @@ function RightPanel() {
         >
           {/* Line 1 — name */}
           <motion.div variants={fieldVariants}>
-            <LetterLabel htmlFor="lf-name">My name is</LetterLabel>
+            <LetterLabel htmlFor="lf-name" required>My name is</LetterLabel>
             <LetterInput
               id="lf-name"
               name="name"
@@ -668,7 +673,7 @@ function RightPanel() {
 
           {/* Line 2 — phone */}
           <motion.div variants={fieldVariants}>
-            <LetterLabel htmlFor="lf-phone">
+            <LetterLabel htmlFor="lf-phone" required>
               Reach me on WhatsApp at <span className="opacity-60">+91</span>
             </LetterLabel>
             <LetterInput
@@ -785,9 +790,11 @@ const fieldVariants = {
 function LetterLabel({
   children,
   htmlFor,
+  required = false,
 }: {
   children: React.ReactNode;
   htmlFor?: string;
+  required?: boolean;
 }) {
   return (
     <label
@@ -795,6 +802,14 @@ function LetterLabel({
       className="font-display italic text-[clamp(1rem,1.5vw,1.15rem)]"
     >
       {children}
+      {required && (
+        <span
+          className="ml-1 align-super text-[0.7em] not-italic text-mavis-gold"
+          aria-hidden="true"
+        >
+          *
+        </span>
+      )}
     </label>
   );
 }
@@ -833,7 +848,7 @@ function Chip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "inline-flex items-center px-3.5 py-1.5 rounded-full border",
+        "inline-flex items-center min-h-11 px-4 py-1.5 rounded-full border",
         "text-[11px] uppercase font-light transition-all duration-300",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mavis-gold-soft",
         selected

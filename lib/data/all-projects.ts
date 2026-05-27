@@ -1,14 +1,22 @@
 /**
- * All Projects — homepage Section 6 card strip.
+ * All Projects — homepage Section 6 card strip + /projects listing source.
  *
  * Curated subset of 12 projects from the 46+ inventory, chosen for variety
  * across zones (east/north/south), status (pre-launch/under-construction/
  * ready), and category (luxury/premium/affordable). Drives the homepage
- * strip and seeds the /projects listing.
+ * strip and the /projects deep-browse listing.
  *
  * The full 46 will live in Sanity CMS — `lib/sanity/queries.ts` will replace
  * this static export. The shape of `ProjectCardItem` matches the planned
  * Sanity schema (architecture.md §3) for a 1:1 swap.
+ *
+ * Display vs. filter fields: `priceFrom` / `bhkRange` are the *display*
+ * strings the card shows (often "Enquire" / "EOI Open"). The numeric
+ * `priceMin` / `priceMax` / `bhk` / `possession` fields exist ONLY to power
+ * the /projects filter bar + sort — they are never rendered. They carry
+ * approximate public price bands for real projects so the Budget/BHK filters
+ * and price/possession sorts are meaningful even when the card hides the
+ * price. `priceMin` is null only when no reasonable band is known.
  *
  * Spec: MAVIS-HOMEPAGE-PLAN.md §6, PROJECTS-PAGE-PLAN.md.
  */
@@ -24,9 +32,9 @@ export interface ProjectCardItem {
   name: string;
   locality: string;
   zone: ProjectZone;
-  /** "3, 4 BHK" — short configuration label */
+  /** "3, 4 BHK" — short configuration label (display only) */
   bhkRange: string;
-  /** "From ₹95 L" / "Enquire" / "EOI Open" — display price */
+  /** "From ₹95 L" / "Enquire" / "EOI Open" — display price (display only) */
   priceFrom: string;
   status: ProjectStatus;
   type: ProjectType;
@@ -38,6 +46,16 @@ export interface ProjectCardItem {
   tone: string;
   /** "RERA ✓" / "RERA Filed" — short trust signal */
   reraDisplay: string;
+
+  // ── Filter/sort-only fields (never rendered) ───────────────────────────
+  /** Approx starting price in INR. null when no band is known. */
+  priceMin: number | null;
+  /** Approx top price in INR. null when no band is known. */
+  priceMax: number | null;
+  /** Bedroom counts offered. Empty for plot/townhouse (filter via `type`). */
+  bhk: number[];
+  /** "YYYY-MM" expected possession; null for ready-to-move / unknown. */
+  possession: string | null;
 }
 
 export const ALL_PROJECTS: readonly ProjectCardItem[] = [
@@ -57,6 +75,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Sobha Hoskote — 90-acre township at dusk",
     tone: "#241608",
     reraDisplay: "RERA Filed",
+    priceMin: 12_000_000,
+    priceMax: 35_000_000,
+    bhk: [1, 2, 3, 4],
+    possession: "2029-06",
   },
   {
     slug: "sobha-oneworld",
@@ -73,6 +95,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Sobha OneWorld — 48-acre integrated township",
     tone: "#1c1310",
     reraDisplay: "RERA Filed",
+    priceMin: 15_000_000,
+    priceMax: 40_000_000,
+    bhk: [1, 2, 3, 4],
+    possession: "2029-12",
   },
   {
     slug: "provident-sunworth-city",
@@ -89,6 +115,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Provident Sunworth — elevation with metro line",
     tone: "#1a1410",
     reraDisplay: "RERA ✓",
+    priceMin: 6_000_000,
+    priceMax: 10_000_000,
+    bhk: [2, 3],
+    possession: "2026-12",
   },
   {
     slug: "birla-trimaya",
@@ -105,6 +135,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Birla Trimaya — Devanahalli greens at golden hour",
     tone: "#16201c",
     reraDisplay: "RERA ✓",
+    priceMin: 6_500_000,
+    priceMax: 18_000_000,
+    bhk: [1, 2, 3, 4],
+    possession: "2027-12",
   },
   {
     slug: "brigade-insignia",
@@ -121,6 +155,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Brigade Insignia — luxury tower at dusk",
     tone: "#15181f",
     reraDisplay: "RERA ✓",
+    priceMin: 34_900_000,
+    priceMax: 60_000_000,
+    bhk: [3, 4, 5],
+    possession: "2027-06",
   },
   {
     slug: "purva-silversky",
@@ -137,6 +175,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Purva Silversky — Electronic City elevation",
     tone: "#181a1f",
     reraDisplay: "RERA ✓",
+    priceMin: 7_000_000,
+    priceMax: 15_000_000,
+    bhk: [1, 2, 3],
+    possession: "2027-03",
   },
 
   // ── Secondary (tone-gradient cards until kits arrive) ──
@@ -155,6 +197,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Provident Deansgate — IVC Road townhouses",
     tone: "#1f1a14",
     reraDisplay: "RERA ✓",
+    priceMin: 19_500_000,
+    priceMax: 30_000_000,
+    bhk: [],
+    possession: "2027-09",
   },
   {
     slug: "provident-botanico",
@@ -171,6 +217,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Provident Botanico — East Bangalore community",
     tone: "#16201a",
     reraDisplay: "RERA ✓",
+    priceMin: 6_500_000,
+    priceMax: 11_000_000,
+    bhk: [2, 3],
+    possession: "2027-12",
   },
   {
     slug: "provident-ecopolitan",
@@ -187,6 +237,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Provident Ecopolitan — Bagaluru North Bangalore",
     tone: "#171a20",
     reraDisplay: "RERA ✓",
+    priceMin: 6_000_000,
+    priceMax: 10_000_000,
+    bhk: [2, 3],
+    possession: "2028-06",
   },
   {
     slug: "purva-park-hills",
@@ -203,6 +257,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Purva Park Hills — South Bangalore",
     tone: "#1a1715",
     reraDisplay: "RERA ✓",
+    priceMin: 15_000_000,
+    priceMax: 25_000_000,
+    bhk: [3, 4],
+    possession: "2026-06",
   },
   {
     slug: "purva-atmosphere",
@@ -219,6 +277,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Purva Atmosphere — Thanisandra Vida residences",
     tone: "#181f1a",
     reraDisplay: "RERA ✓",
+    priceMin: 9_000_000,
+    priceMax: 14_000_000,
+    bhk: [2, 3],
+    possession: null,
   },
   {
     slug: "provident-park-square",
@@ -235,6 +297,10 @@ export const ALL_PROJECTS: readonly ProjectCardItem[] = [
     imageAlt: "Provident Park Square — Kanakapura Road",
     tone: "#1b1815",
     reraDisplay: "RERA ✓",
+    priceMin: 5_000_000,
+    priceMax: 8_000_000,
+    bhk: [2, 3],
+    possession: null,
   },
 ];
 
