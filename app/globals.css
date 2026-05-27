@@ -159,12 +159,19 @@
     background-color: var(--color-mavis-bg);
     color: var(--color-mavis-fg);
     color-scheme: dark;
+    /* Hard guard against horizontal scroll at every viewport width. `clip`
+       (not `hidden`) does not create a scroll container, so sticky headers
+       and the pinned GSAP ScrollTrigger sections keep working. Off-screen
+       enter-animations (e.g. LeadForm's ±8% slide-in) are contained rather
+       than producing a stray sideways scrollbar. */
+    overflow-x: clip;
   }
   body {
     background-color: var(--color-mavis-bg);
     color: var(--color-mavis-fg);
     /* Anti-flash on cinematic dark layout */
     overscroll-behavior-y: none;
+    overflow-x: clip;
   }
   /* Selection — gold, low alpha so it doesn't fight the dark aesthetic */
   ::selection {

@@ -83,7 +83,7 @@ export function LeadForm() {
       aria-label="Talk to a Mavis advisor"
       className="relative w-full bg-mavis-bg scroll-mt-16"
     >
-      <div className="relative flex min-h-screen w-full flex-col lg:flex-row">
+      <div className="relative flex min-h-screen w-full flex-col lg:flex-row overflow-hidden">
         {/* ──────── LEFT PANEL — Cinematic concierge ──────── */}
         <motion.div
           initial={reduceMotion ? { opacity: 0 } : { x: "-8%", opacity: 0 }}

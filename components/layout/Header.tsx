@@ -15,7 +15,9 @@ import { MobileNav } from "./MobileNav";
  * Site header.
  *
  * Behaviour:
- *   • Transparent over the hero, solid + blurred + bordered once scrolled past 40 px
+ *   • Fully transparent at all times — no background/blur/border, ever. Logo
+ *     and toggle carry a soft drop-shadow so they stay legible over both the
+ *     dark hero and lighter sections beneath.
  *   • Hides itself when scrolling DOWN past 100 px (`y: -100%`)
  *   • Reveals itself when scrolling UP — buttery snap via spring-ish quint-out
  *   • Never hides while MobileNav is open (the X to close lives in this header)
@@ -35,7 +37,6 @@ const SCROLL_DELTA = 6; // jitter threshold — ignore tiny scroll movements
 
 export function Header() {
   const [hidden, setHidden] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const { scrollY, scrollYProgress } = useScroll();
@@ -43,7 +44,6 @@ export function Header() {
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const prev = lastScrollRef.current;
-    setScrolled(latest > 40);
 
     // Never hide while menu is open — the close button lives here
     if (mobileNavOpen) {
@@ -73,12 +73,7 @@ export function Header() {
       <motion.header
         animate={{ y: hidden ? "-100%" : "0%" }}
         transition={{ duration: 0.45, ease: EASE_QUINT_OUT }}
-        className={cn(
-          "fixed top-0 inset-x-0 z-[65] transition-colors duration-300",
-          scrolled || mobileNavOpen
-            ? "bg-mavis-bg/82 backdrop-blur-xl border-b border-mavis-line"
-            : "bg-transparent border-b border-transparent",
-        )}
+        className="fixed top-0 inset-x-0 z-65 bg-transparent"
       >
         {/* Scroll progress bar — thin gold filament along the very top edge */}
         <motion.div
@@ -87,7 +82,7 @@ export function Header() {
           style={{ scaleX: scrollYProgress }}
         />
 
-        <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
+        <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12 h-20 sm:h-24 flex items-center justify-between">
           {/* Logo */}
           <Link
             href="/"
@@ -97,49 +92,42 @@ export function Header() {
             <Image
               src="/mavis-logo.svg"
               alt="Mavis Infra Solutions"
-              width={120}
-              height={32}
+              width={210}
+              height={56}
               priority
-              className="h-7 w-auto"
+              className="h-11 sm:h-14 w-auto drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
             />
           </Link>
 
-          {/* Menu toggle — animated hamburger ↔ X */}
+          {/* Menu toggle — animated hamburger ↔ X. Icon only, no label. */}
           <button
             type="button"
             onClick={toggleMenu}
             aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileNavOpen}
-            className="group inline-flex items-center gap-3 py-2 -mr-2 px-2 text-mavis-fg hover:text-mavis-gold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mavis-gold-soft rounded"
+            className="group inline-flex items-center py-2 -mr-2 px-2 text-mavis-fg hover:text-mavis-gold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mavis-gold-soft rounded drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
           >
-            <span
-              className="hidden sm:inline text-[10px] uppercase font-light opacity-80 group-hover:opacity-100 transition-opacity tabular-nums"
-              style={{ letterSpacing: "var(--tracking-display-wide)" }}
-            >
-              {mobileNavOpen ? "Close" : "Menu"}
-            </span>
-
             {/* Custom hamburger — two thin lines that rotate to X when open */}
             <span
               aria-hidden="true"
-              className="relative inline-block h-3.5 w-5"
+              className="relative inline-block h-6 w-9"
             >
               <span
                 className={cn(
-                  "absolute left-0 top-1/2 block h-px w-full bg-current",
+                  "absolute left-0 top-1/2 block h-0.5 w-full rounded-full bg-current",
                   "transition-all duration-300 ease-out",
                   mobileNavOpen
                     ? "translate-y-0 rotate-45"
-                    : "-translate-y-[3.5px]",
+                    : "-translate-y-1.5",
                 )}
               />
               <span
                 className={cn(
-                  "absolute left-0 top-1/2 block h-px w-full bg-current",
+                  "absolute left-0 top-1/2 block h-0.5 w-full rounded-full bg-current",
                   "transition-all duration-300 ease-out",
                   mobileNavOpen
                     ? "translate-y-0 -rotate-45"
-                    : "translate-y-[3.5px]",
+                    : "translate-y-1.5",
                 )}
               />
             </span>
